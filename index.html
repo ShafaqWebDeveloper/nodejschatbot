@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web Chatbot</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .chat-container {
+      max-width: 600px;
+      margin: 20px auto;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      background-color: #f0f0f0;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .chat-history {
+      max-height: 300px;
+      overflow-y: scroll;
+      padding: 10px;
+      
+    }
+
+    .chat-input {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      
+    }
+
+    input {
+      flex: 1;
+      padding: 8px;
+      margin-right: 8px;
+      
+    }
+
+    button {
+      padding: 8px;
+      cursor: pointer;
+    }
+
+    .sticker-box , .emoji-box {
+      display: none;
+      max-height: 100px;
+      overflow-y: scroll;
+      border-top: 1px solid #ccc;
+      padding: 10px;
+    }
+
+    .sticker , .emoji {
+      width: 50px;
+      height: 50px;
+      margin: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <h2>Chatbot</h2>
+    </div>
+    
+    <div class="chat-history" id="chatHistory">
+      <!-- Chat history will be displayed here -->
+    </div>
+    <div class="sticker-box" id="stickerBox">
+      <!-- Sticker images will be displayed here -->
+    </div>
+    <div class="emoji-box" id="emojibox">
+      <!--  emojies will be displayed here -->
+    </div>
+    
+    <div class="chat-input">
+      <button onclick="toggleStickerBox()">Stickers</button>
+      <button onclick="toggleEmojiBox()">emojies</button>
+      <input type="text" id="userInput" placeholder="Type your message...">
+      <button onclick="sendMessage()">Send</button>
+      <button onclick="startVoiceRecognition()">Start Voice</button>
+      
+    </div>
+  </div>
+
+  <script>
+ function createImageElement(src, clickHandler) {
+  const imageElement = document.createElement("img");
+  imageElement.src = src;
+  imageElement.className = "sticker"; // or "emoji" depending on usage
+  imageElement.onclick = clickHandler;
+  return imageElement;
+}
+    document.addEventListener("DOMContentLoaded", function () {
+  // Add event listener for Enter key press
+  document.getElementById("userInput").addEventListener("keyup", function (event) {
+    if (event.key === "Enter") {
+      sendMessage();
+    }
+  });
+  
+  // Fetch sticker images from the server
+  fetchAndShowStickers();
+
+  // Fetch emoji images from the server
+  fetchAndShowEmojis();
+});
+
+async function fetchAndShowStickers() {
+  try {
+    const response = await fetch('/sticker/sticker/all');
+    const stickers = await response.json();
+
+    const stickerBox = document.getElementById("stickerBox");
+    stickerBox.innerHTML = "";
+
+    stickers.forEach(sticker => {
+      const stickerElement = createImageElement(`/uploads/${sticker.simg}`, sendSticker);
+      stickerBox.appendChild(stickerElement);
+    });
+  } catch (error) {
+    console.error('Error fetching stickers:', error);
+  }
+}
+
+async function fetchAndShowEmojis() {
+  try {
+    const response = await fetch('/emoji/emoji/all');
+    const emojis = await response.json();
+
+    const emojiBox = document.getElementById("emojibox");
+    emojiBox.innerHTML = "";
+    emojis.forEach(emoji => {
+      const emojiElement = createImageElement(`/emojiuploads/${emoji.eimg.toLowerCase()}`, sendemoji);
+      emojiBox.appendChild(emojiElement);
+    });
+  } catch (error) {
+    console.error('Error fetching emojis:', error);
+  }
+}
+
+
+function sendMessage() {
+   var userInput = document.getElementById("userInput").value;
+      if (userInput.trim() === "") return;
+  
+      // Display user message in chat history
+      appendMessage("user", userInput);
+  
+      // TODO: Send user input to the server for processing (integrating with NLP APIs)
+  
+      // Simulate chatbot response (replace with actual response from server)
+      var chatbotResponse = "This is a sample response from the chatbot.";
+  
+      // Display chatbot response in chat history
+      appendMessage("chatbot", chatbotResponse);
+  
+      // Clear user input
+      document.getElementById("userInput").value = "";
+}
+
+function appendMessage(sender, message) {
+var chatHistory = document.getElementById("chatHistory");
+      var messageElement = document.createElement("div");
+      messageElement.className = sender;
+      // Displaying images directly for stickers
+      if (sender === "user" && message.includes("<img")) {
+        messageElement.innerHTML = message;
+      } else {
+        messageElement.textContent = message;
+      }
+      chatHistory.appendChild(messageElement);
+  
+      // Scroll to the bottom of the chat history
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+}
+
+function startVoiceRecognition() {
+// TODO: Implement voice recognition using Web Speech API
+      // This would involve capturing user's voice input and sending it for processing
+}
+
+function sendSticker(sUrl) {
+// Display user sticker in chat history
+      appendMessage("user", `<img class="sticker" src="${sUrl}" alt="Sticker">`);
+  
+      // TODO: Send sticker data to the server for processing
+  
+      // Simulate chatbot response (replace with actual response from server)
+      var chatbotResponse = "This is a sample response to a sticker.";
+  
+      // Display chatbot response in chat history
+      appendMessage("chatbot", chatbotResponse);
+  
+      // Hide the sticker box after selecting a sticker
+      toggleStickerBox();
+}
+
+function sendemoji(eUrl) {
+// Display user sticker in chat history
+      appendMessage("user", `<img class="emoji" src="/emojiuploads/${eUrl.eimg}" alt="${eUrl.ename}">`);
+  
+      // TODO: Send sticker data to the server for processing
+  
+      // Simulate chatbot response (replace with actual response from server)
+      var chatbotResponse = "This is a sample response to a emoji.";
+  
+      // Display chatbot response in chat history
+      appendMessage("chatbot", chatbotResponse);
+  
+      // Hide the sticker box after selecting a sticker
+      toggleEmojiBox();
+}
+
+function toggleStickerBox() {
+const stickerBox = document.getElementById("stickerBox");
+      if (stickerBox.style.display === 'none') {
+        // If the sticker box is hidden, fetch and show the stickers
+        fetch('/sticker/sticker/all')
+          .then(response => response.json())
+          .then(stickers => {
+            stickerBox.innerHTML = ""; // Clear existing stickers
+            stickers.forEach(sticker => {
+              const stickerElement = document.createElement("img");
+              stickerElement.src = `/uploads/${sticker.simg.toLowerCase()}`;
+              console.log(stickerElement.src);
+              stickerElement.alt = "Sticker";
+              stickerElement.className = "sticker";
+              stickerElement.onclick = function () {
+                sendSticker(`/uploads/${sticker.simg}`);
+              };
+              stickerBox.appendChild(stickerElement);
+            });
+            stickerBox.style.display = 'block'; // Show the sticker box
+          })
+          .catch(error => {
+            console.error('Error fetching stickers:', error);
+          });
+      } else {
+        // If the sticker box is visible, hide it
+        stickerBox.style.display = 'none';
+      }
+}
+
+function toggleEmojiBox() {
+ const emojibox = document.getElementById("emojibox"); 
+  if (emojibox.style.display === 'none') {
+    // If the emoji box is hidden, fetch and show the emoji
+    fetch('/emoji/emoji/all')
+      .then(response => response.json())
+      .then(emoji => {
+        emojibox.innerHTML = ""; // Clear existing emoji
+        emoji.forEach(emoji => {
+          const emojiElement = document.createElement("img");
+          emojiElement.src = `/emojiuploads/${emoji.eimg.toLowerCase()}`;
+          console.log(emojiElement.src);
+          emojiElement.alt = "emoji";
+          emojiElement.className = "emoji";
+          emojiElement.onclick = function () {
+            sendemoji(emoji);
+          };
+          emojibox.appendChild(emojiElement);
+        });
+        emojibox.style.display = 'block'; // Show the emoji box
+      })
+      .catch(error => {
+        console.error('Error fetching emoji:', error);
+      });
+  } else {
+    // If the emoji box is visible, hide it
+    emojibox.style.display = 'none';
+  }
+}
+console.log(`/uploads/${sticker.simg}`);
+console.log(`/emojiuploads/${emoji.eimg.toLowerCase()}`);
+
+  </script>
+  
+</body>
+</html>
